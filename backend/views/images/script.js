@@ -1,4 +1,4 @@
-fetch('http://localhost:8000/api/users/exam-link')
+fetch('api/users/exam-link')
   .then(response => response.json())
   .then(data => {
     const statusElement = document.getElementById('status');

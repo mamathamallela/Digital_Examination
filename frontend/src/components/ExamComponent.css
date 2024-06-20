@@ -1,3 +1,19 @@
+.exam-component-container {
+  position: relative;
+}
+
+.time-left-container {
+  position: fixed;
+  top: 20px; /* Adjust the top position as needed */
+  right: 20px; /* Adjust the right position as needed */
+  background-color: #fff;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 999; /* Make sure it's above other elements */
+}
+
 .custom-options li {
     list-style-type: none;
     cursor: pointer;
@@ -8,6 +24,19 @@
   }
   
   .custom-options li.selected {
-    background-color: #ffcccb; /* Light red background for selected options */
+    background-color: #ffcccb;
   }
   
+
+  
+.custom-card {
+  margin-bottom: 20px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.custom-card:hover {
+  
+  transform: scale(1.10);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+

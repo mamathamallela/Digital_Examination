@@ -1,38 +1,43 @@
 import React, { useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const CaptureImage = ({ registerNumber }) => {
   const webcamRef = useRef(null);
   const [image, setImage] = useState(null);
+  const navigate = useNavigate(); 
 
   const captureAndSaveImage = async () => {
     const imageSrc = webcamRef.current.getScreenshot();
     setImage(imageSrc);
-
+  
     if (imageSrc) {
       const blob = dataURItoBlob(imageSrc);
       try {
         const formData = new FormData();
         formData.append('image', blob);
-        // formData.append('registerNumber', registerNumber);
-
-        // Append the registerNumber retrieved from local storage
-      formData.append('registerNumber', localStorage.getItem('userid'));
-
-
-
-        await axios.post('http://192.168.30.104:8000/api/users/uploadImage', formData, {
+        formData.append('registerNumber', localStorage.getItem('userid'));
+  
+        // Make the POST request to upload the image
+        const response = await axios.post('api/users/uploadCameraImage', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-
-        // Optionally, handle success response
+  
+        console.log('Image upload successful');
+  
+        // Only navigate to the user page if the image upload is successful
+        if (response.status === 200) {
+          navigate('/user');
+          console.log('Navigating to /user page');
+        }
       } catch (error) {
-        console.error('Error uploading image:', error);
-        // Handle error
+        console.log('Error uploading image:', error);
+        // Handle error: you can display an error message to the user here
       }
     }
   };
+  
 
   const dataURItoBlob = (dataURI) => {
     const byteString = atob(dataURI.split(',')[1]);
@@ -67,7 +72,22 @@ const CaptureImage = ({ registerNumber }) => {
       <div style={{ display: 'flex', justifyContent:'center',  width: '80%', maxWidth: '800px',padding:'12px' }}>
         <div style={{  flex: '1' }}>
           <Webcam audio={false} ref={webcamRef} screenshotFormat="image/png" width={480} height={360} />
-          <button onClick={captureAndSaveImage}>Capture Image</button>
+          <button
+  onClick={captureAndSaveImage}
+  style={{
+    padding: '10px 20px',
+    backgroundColor: 'blue',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    marginTop: '10px',
+  }}
+>
+  Capture Image
+</button>
+
           {/* <div style={{ borderBottom: '3px solid blue', width: '100%', maxWidth: '1800px' }}></div> */}
           
         </div>

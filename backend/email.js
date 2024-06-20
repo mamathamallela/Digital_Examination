@@ -77,5 +77,3 @@ async function sendEmailsToUsers() {
 
 // Call the async function to send emails
 sendEmailsToUsers();
-
-

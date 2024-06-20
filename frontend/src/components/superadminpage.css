@@ -1,0 +1,65 @@
+.add-admin-form {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .add-admin-form h3 {
+    margin-top: 0;
+  }
+  
+  .add-admin-form label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .add-admin-form input[type="text"],
+  .add-admin-form input[type="email"],
+  .add-admin-form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .add-admin-form button[type="submit"],
+  .add-admin-form button[type="button"] {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .add-admin-form button[type="submit"]:hover,
+  .add-admin-form button[type="button"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .add-admin-form button[type="submit"] {
+    background-color: #28a745;
+  }
+  
+  .add-admin-form button[type="submit"]:hover {
+    background-color: #218838;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  

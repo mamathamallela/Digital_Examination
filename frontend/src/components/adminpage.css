@@ -1,28 +1,45 @@
+/* adminpage.css */
+
 .adminpage-container {
   display: flex;
 }
 
 .asidebar {
-  width: 15%;
-  background-color: #e5ebe5;
+  background-color: whitesmoke;
+  color: black;
   padding: 20px;
   text-align: center;
+  min-width: 200px;
   min-height: 100vh;
 }
 
 .avatar {
-  width: 100px; /* Adjust the size as needed */
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
 }
 
 .username {
-  margin-top: 10px;
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .sidebar-button {
   display: block;
   width: 100%;
-  margin: 10px 0;
+  padding: 12px;
+  margin: 8px 0;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.sidebar-button:hover {
+  background-color: #04478e;
 }
 
 .content {
@@ -30,21 +47,87 @@
   padding: 20px;
 }
 
-.results-table {
-  margin-bottom: 20px;
+h2 {
+  color: #333;
 }
 
-table {
-  border-collapse: collapse;
+h3 {
+  color: #555;
+}
+
+.notifications-list table {
   width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
 }
 
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
+.notifications-list th, .notifications-list td {
+  padding: 12px;
   text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
-th {
+.notifications-list th {
   background-color: #f2f2f2;
 }
+
+.results-table table,
+.users-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.results-table th,
+.results-table td,
+.users-table th,
+.users-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.results-table th,
+.users-table th {
+  background-color: #f2f2f2;
+}
+
+/* Additional styles for buttons and form elements */
+
+button {
+  padding: 10px;
+  background-color: #555;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #777;
+}
+
+form {
+  margin-top: 10px;
+}
+
+input[type="file"] {
+  margin-right: 10px;
+}
+
+.delete-button {
+  background-color: red; /* Change to whatever color you prefer */
+  color: white; /* Text color */
+  border: none; /* Remove default button border */
+  padding: 8px 16px; /* Adjust padding as needed */
+  cursor: pointer; /* Show pointer cursor on hover */
+  border-radius: 4px; /* Rounded corners */
+  /* Add any other styles you want */
+}
+
+.delete-button:hover {
+  background-color: darkred; /* Change color on hover */
+}
+
+

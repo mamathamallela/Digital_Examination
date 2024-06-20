@@ -1,0 +1,126 @@
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #f0f0f0;
+  background-size: cover;
+  max-height: 300px;
+  
+}
+
+.footer-container > div {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.footer-container h2, .footer-container h3 {
+  color: #e2e0e0;
+  size: 200px;
+}
+
+.footer-container p {
+  margin: 5px 0;
+  color: #e2e0e0;
+  row-gap: 30px;
+}
+
+ .fa-icon {
+  font-size: 24px; /* Adjust the size as needed */
+  row-gap: 100px;
+  margin-right: 10px; /* Adjust the spacing */
+  row-gap: 90px;;
+}
+
+.footer-container a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.footer-column {
+  flex: 1;
+  padding: 20px;
+  text-align: center;
+  justify-content: center;
+}
+
+.footer-column h4 {
+  color: #ece6e6;
+}
+
+.footer-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.footer-column ul li {
+  margin-bottom: 5px;
+}
+
+.footer-column h6 {
+  color: #f1ecec;
+  text-align: center;
+}
+.footer-contact{
+  text-decoration: none;
+  color: #e2e0e0;
+}
+
+.footer-container p {
+  color: #e2e0e0;
+  size: 100%;
+}
+
+.follow-us a {
+  display: flex; /* Make the link a flex container */
+  align-items: center; /* Align items vertically */
+  margin-bottom: 8px; /* Add some space below each link */
+}
+
+.follow-us a svg {
+  margin-right: 8px; /* Add margin-right to the icons */
+  font-size: 24px;
+}
+
+.quick-links {
+  font-size: 25px; /* Increase the font size */
+  margin-bottom: 100px;
+  
+}
+
+
+.footer-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.quick-links,
+.fa-icon,
+.follow-us {
+  flex: 1;
+  margin-right: 20px; /* Adjust as needed */
+  padding-left: 20px;
+
+}
+
+.quick-links,
+.fa-icon {
+  margin-bottom: 20px; /* Adjust as needed */
+  
+}
+
+.follow-us {
+  margin-bottom: 0; /* No bottom margin for the last column */
+  font-size: 20px;
+  padding-left: 250px;
+  /* padding-right: 200px; */
+}
+
+.fa-icon p {
+  margin-bottom: 10px; /* Adjust as needed */
+  
+}
+
+.fa-icon {
+  padding-left: 300px;
+}

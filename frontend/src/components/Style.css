@@ -1,0 +1,13 @@
+.loginPage {
+    background: url('https://media.istockphoto.com/id/1323701164/photo/double-exposure-of-virtual-creative-lock-hologram-with-chip-on-modern-corporate-office.webp?b=1&s=170667a&w=0&k=20&c=NB_-Ck-rTdQaKzCzF9FcoOMGke2ry9-b2YCRpeESEVk=');
+    background: linear-gradient(rgba(11, 11, 11, 0.5), rgba(10, 10, 10, 0.5)), url("https://media.istockphoto.com/id/1323701164/photo/double-exposure-of-virtual-creative-lock-hologram-with-chip-on-modern-corporate-office.webp?b=1&s=170667a&w=0&k=20&c=NB_-Ck-rTdQaKzCzF9FcoOMGke2ry9-b2YCRpeESEVk=");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 120%;
+}
+
+.loginForm {
+    background-color: rgba(1, 32, 93, 0.6);
+    color: white;
+}
+

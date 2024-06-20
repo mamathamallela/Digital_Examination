@@ -5,6 +5,7 @@ const connection = require('./database');
 const dotenv = require('dotenv');
 
 
+
 dotenv.config();
 
 const app = express();
@@ -22,7 +23,7 @@ connection.connect((err) => {
 
 const userRoutes = require('./routes/userRoutes');
 
-app.use('/api/users/', userRoutes);
+app.use('/api/users', userRoutes);
 
 
 

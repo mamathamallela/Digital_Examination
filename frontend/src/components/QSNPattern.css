@@ -1,0 +1,81 @@
+.pattern-container {
+    text-align: center;
+    
+    background-color:  hsl(0, 0%, 100%);/* Set background color */
+    border-radius: 1px;
+    max-width: 1000px; /* Set maximum width */
+    max-height: 600px;
+    /* height: 80%; */
+    margin: 0 auto; /* Center the div horizontally */
+    margin-bottom: 1px;
+    font-size: large;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.25);
+    
+  }
+  .pattern-header{
+    font-size: '20px';
+    display: flex;
+    justify-content: space-around;
+    background-image: linear-gradient(45deg, #009de0 30%, #059b3e 90%);
+    padding: 20px;
+  }
+  .pattern img{
+    max-width: 40;
+    max-height: 40;
+  }
+  .pattern-container h4{
+    color:#003865;
+    margin-top: 30px;
+  }
+  
+  .pattern-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    font-size: medium;
+    gap: 30px;
+  }
+  
+  .pattern {
+    margin: 5px;
+    width: 180px; /* Adjust width as needed */
+    height: 180px; /* Adjust height as needed */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0px; /* Adjust the gap between rows of pattern cards */
+  }
+  
+  .pattern-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: large;
+  }
+  
+  .pattern-content img {
+    width: 100px; /* Adjust the width as needed */
+  }
+  
+  .pattern-content span {
+    margin-top: 7px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .pattern img {
+    width: 55px; /* Adjust image size as needed */
+    height: 55px; /* Adjust image size as needed */
+    margin-bottom: 12px; /* Adjust margin as needed */
+  }
+  
+  .pattern span {
+    font-size: large;
+    
+  }
+  
+  
+  

@@ -1,62 +1,92 @@
 import React, { useState, useEffect } from 'react';
-import questionsData from './questions';
-import './ExamComponent.css'; 
+import './ExamComponent.css';
 
-const ExamComponent = ({ onSubmit }) => {
+const ExamComponent = (props) => {
   const [examQuestions, setExamQuestions] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(300); // 300 seconds = 5 minutes
+  const [timer, setTimer] = useState(null);
+  const [warningShown, setWarningShown] = useState(false);
 
-  useEffect(() => {
-    setExamQuestions(questionsData);
-  }, []);
-
-
+  const { onSubmit, questionPaper } = props;
 
   const handleAnswerSelection = (questionId, selectedOption) => {
-  setSelectedAnswers(prevAnswers => {
-    const updatedAnswers = { ...prevAnswers };
+    setSelectedAnswers((prevAnswers) => {
+      const updatedAnswers = { ...prevAnswers };
 
-    if (!updatedAnswers[questionId]) {
-      updatedAnswers[questionId] = [];
-    }
+      if (!updatedAnswers[questionId]) {
+        updatedAnswers[questionId] = [];
+      }
 
-    const optionIndex = updatedAnswers[questionId].indexOf(selectedOption);
+      const optionIndex = updatedAnswers[questionId].indexOf(selectedOption);
 
-    if (optionIndex !== -1) {
-      updatedAnswers[questionId].splice(optionIndex, 1);
-    } else {
-      updatedAnswers[questionId] = [selectedOption]; // Change to a single selection
-    }
-    
-    return updatedAnswers;
-  });
-};
+      if (optionIndex !== -1) {
+        updatedAnswers[questionId].splice(optionIndex, 1);
+      } else {
+        updatedAnswers[questionId] = [selectedOption];
+        const isNumber = !isNaN(selectedOption);
+        if (isNumber) {
+          // If it's a number, parse it as an integer
+          updatedAnswers[questionId] = [...updatedAnswers[questionId], parseInt(selectedOption)];
+        } else {
+          // If it's not a number, keep it as a string
+          updatedAnswers[questionId] = [...updatedAnswers[questionId], selectedOption];
+        }
+      }
+      // }
 
-
+      return updatedAnswers;
+    });
+  };
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
-    }, 1000);
+    setExamQuestions(questionPaper);
+  }, [questionPaper]);
 
-    if (timeLeft === 0) {
-      clearInterval(timer);
-      onSubmit(selectedAnswers); // Automatically submit when time is up
-    }
+  useEffect(() => {
+    setTimer(
+      setInterval(() => {
+        setTimeLeft((prevTime) => prevTime - 1);
+      }, 1000)
+    );
 
     return () => clearInterval(timer);
-  }, [timeLeft, selectedAnswers, onSubmit]);
+  }, [timer]);
 
-  
+  const handleTabSwitch = () => {
+    if (!warningShown && timer) {
+      const shouldAllowSwitching = window.confirm(
+        'Warning: Switching tabs during the exam is not allowed. Do you want to cancel the exam?'
+      );
+
+      setWarningShown(true);
+
+      if (!shouldAllowSwitching) {
+        // If not allowed, stop the exam or show a message
+        clearInterval(timer);
+        onSubmit(selectedAnswers); // Submit the exam or perform other actions
+      }
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('visibilitychange', handleTabSwitch);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleTabSwitch);
+    };
+  }, [handleTabSwitch]);
+
   return (
-    <div>
-      <h3>Time Left: {Math.floor(timeLeft / 60)}:{timeLeft % 60}</h3>
-      {examQuestions.map(category => (
+    <div className="exam-component-container">
+      <div className="time-left-container">
+        <h3>Time Left: {Math.floor(timeLeft / 60)}:{timeLeft % 60}</h3>
+      </div>
+      {examQuestions.map((category) => (
         <div key={category.category}>
           <h3>{category.category}</h3>
           <ol>
-            {category.questions.map(question => (
+            {category.questions.map((question) => (
               <li key={question.id}>
                 <p>{question.question}</p>
                 <ul className="custom-options">
@@ -66,7 +96,7 @@ const ExamComponent = ({ onSubmit }) => {
                       className={selectedAnswers[question.id]?.includes(option) ? 'selected' : ''}
                       onClick={() => handleAnswerSelection(question.id, option)}
                     >
-                      {option}
+                      {typeof option === 'number' ? option.toString() : option}
                     </li>
                   ))}
                 </ul>
@@ -75,7 +105,9 @@ const ExamComponent = ({ onSubmit }) => {
           </ol>
         </div>
       ))}
-      <button onClick={() => onSubmit(selectedAnswers)}>Submit Exam</button>
+      <button className="d-button" onClick={() => onSubmit(selectedAnswers)}>
+        Submit Exam
+      </button>
     </div>
   );
 };

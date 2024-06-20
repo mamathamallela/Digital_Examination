@@ -10,7 +10,7 @@ const SignUpForm = () => {
     email: '',
     password: '',
     resume: '',
-    role: 'user',
+    role: 'admin',
   });
 
   const handleChange = (e) => {
@@ -26,7 +26,7 @@ const SignUpForm = () => {
     e.preventDefault();
   
     try {
-      const response = await axios.post('http://localhost:8000/api/users/register', {
+      const response = await axios.post('api/users/register', {
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -46,8 +46,7 @@ const SignUpForm = () => {
       navigate('/login');
     } catch (error) {
       if (error.response && error.response.status === 400) {
-        // Username or email already exists
-        alert(error.response.data.message); // Display a user-friendly message
+        alert(error.response.data.message); 
       } else {
         console.error('Error registering user:', error);
       }

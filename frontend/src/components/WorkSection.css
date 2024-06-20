@@ -1,0 +1,72 @@
+/* WorkSection.css */
+
+.work_section {
+    padding: 50px 0; /* Add padding around the work section */
+    background-color:  hsl(0, 0%, 94%);/* Set background color */
+    border-radius: 15px;
+    max-width: 1300px; /* Set maximum width */
+    height: 80%;
+    margin: 0 auto; /* Center the div horizontally */
+    margin-bottom: 30px;
+    /* display: flex; */
+  }
+  
+  .container_row {
+    max-width: 1200px; /* Set max width for the container */
+    margin: 0 auto; /* Center the container */
+  }
+  
+  .work_title h2 {
+    text-align: center; /* Center align the title */
+    margin-bottom: 30px; /* Add space below the title */
+    color: #333; /* Set text color */
+  }
+  
+  .sec-process-step {
+    display: flex; /* Use flexbox layout for the process step section */
+    justify-content: center; /* Center align items horizontally */
+  }
+  
+  .process_sec ul {
+    list-style: none; /* Remove default list styles */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+    display: flex; /* Use flexbox layout for list items */
+    justify-content: space-around; /* Distribute items evenly */
+  }
+  
+  .process_sec ul li {
+    text-align: center; /* Center align list items */
+    margin: 0 20px; /* Add space between list items */
+  }
+  
+  .process_sec ul li img {
+    width: 180px; /* Set width for images */
+    height: 175px; /* Set height for images */
+    display: block; /* Make images block elements */
+    margin: 15px auto;  /* Center align images and add space below */
+    border-radius: 10px; /* Apply circular border */
+
+  }
+  
+  .process_sec ul li span {
+    font-size: 20px; /* Set font size for step numbers */
+    font-weight: bold; /* Set font weight for step numbers */
+    display: block; /* Make step numbers block elements */
+    display: inline-block;
+    width: 60px; /* Adjust the width and height to your preference */
+    height: 60px; /* Adjust the width and height to your preference */
+    align-items: middle;
+    border-radius: 50%; /* Make the element circular */
+    background-color: orange; /* Set the background color */
+    color: white; /* Set the text color */
+    text-align: center; /* Center the text horizontally */
+    line-height: 60px; /* Center the text vertically */
+  }
+  
+  .process_sec ul li h6 {
+    font-size: 18px; /* Set font size for step titles */
+    margin-top: 10px; /* Add space above step titles */
+    color:000080#; /* Set text color */
+  }
+  

@@ -1,7 +1,7 @@
 /* This is welcome css*/
 .container {
     text-align: center;
-    margin-top: 150px;
+    /* margin-top: 150px; */
   }
   
   h1 {
@@ -24,6 +24,8 @@
   button:hover {
     background-color: #0056b3;
   }
+
+
   
   /* This is signup css*/
   .form-container {
@@ -119,3 +121,4 @@
     background-color: #0056b3;
   }
   
+ 

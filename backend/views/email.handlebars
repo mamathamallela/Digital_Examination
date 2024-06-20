@@ -44,21 +44,29 @@
 <body>
     <div class="header">
         <h1>Thanks for Registering!</h1>
-        <div class="logo">
+         <div class="logo">
             <img src="https://i.ibb.co/Fx6WgnK/pngwing-com.png">
         </div>
     </div>
     <div class="container">
         <p>Dear Applicant,</p>
         <p>
-        Thank you for registering with Digital Examination! We are thrilled to have you on board.</p>
+        Thank you for registering for {{notificationText}}with Digital Examination! We are thrilled to have you on board.</p>
 
         <p>Your account is now set up, and you are all ready to explore our platform. Here are some key details:</p>
 
         <ul>
             <li><strong>Email:</strong> {{email}}</li>
             <li><strong>RegisterNumer:</strong> {{registernumber}}</li>
+             <li><strong>Exam Date:</strong> {{exam_date}}</li>
+             <li><strong>Start Time:</strong> {{StartTime}}</li>
+            <li><strong>End Time:</strong> {{ EndTime}}</li>
+
         </ul>
+        {{!-- <div class="message">
+    <p>Furthermore, we are pleased to announce that the link to your upcoming exam is now available. Here are the details:</p> 
+    <p>Please make sure to click on the provided link at the scheduled time to begin your examination.</p>
+</div> --}}
 
         <div class="message">
             <p>Please keep this information secure and do not share it with anyone. You can use these credentials to access your account and enjoy our services.</p>
@@ -79,5 +87,6 @@
         Digital Examination Administration</p>
     </div>
     {{!-- <script src="script.js"></script> --}}
+    
 </body>
 </html>

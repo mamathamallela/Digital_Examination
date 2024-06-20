@@ -1,64 +1,127 @@
 .employment-form {
-    max-width: 800px; /* Adjust the maximum width of the form */
-    margin: auto; /* Center the form on the page */
-    padding: 20px; /* Add padding to the form */
-    background-color: #f5f5f5; /* Set a background color */
-    border: 1px solid #ccc; /* Add a border */
-    border-radius: 8px; /* Optional: Add border radius for rounded corners */
-  }
+  max-width: 800px; /* Adjust the maximum width of the form */
+  margin: auto; /* Center the form on the page */
+  padding: 20px; /* Add padding to the form */
+  border: 1px solid pink; /* Add a border */
+  border-radius: 8px; /* Optional: Add border radius for rounded corners */
+  background-image:url("https://img.freepik.com/free-photo/blue-wall-background_53876-88663.jpg?size=626&ext=jpg") ;
+  border: 2px solid rgb(1, 1, 85);
+  border-radius: 20px;
+  padding: 10px;
+}
+.centered-text {
+  text-align: center; /* Center-aligns text within the div */
+  color: darkblue; /* Sets text color */
+  display: flex; /* Utilizes flexbox layout */
+  justify-content: center; /* Centers items horizontally */
+  align-items: center; /* Centers items vertically */
+  font-weight: Bookman Old Style; /* Apply bold font weight */
+ }
+
+.left-image {
+  width: 100px; /* Adjust the width of the image */
+  height: auto; /* Ensures the aspect ratio of the image is maintained */
+  margin-right: 20px; /* Adjusts spacing between the image and the text */
+  border-radius: 20px;
+  /* padding: 40px; */
+}
+
+
+
+.bg {
   
-  .form-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
+  background-size: cover; /* Ensures the background image covers the entire container */
+  background-position: center; /* Centers the background image */
+  /* Additional background properties can be added as needed */
+}
+
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.form-field {
+  width: calc(40% - 20px); /* Adjust the width of each form field */
+  margin-bottom: 10px; /* Add margin between form fields */
+  color: #0909e5;
+  font-weight: Bookman Old Style; /* Apply bold font weight */
   
-  .form-field {
-    width: calc(33.33% - 10px); /* Adjust the width of each form field */
-    margin-bottom: 15px; /* Add margin between form fields */
-  }
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: initial;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+#birthDate {
+  cursor: pointer; /* Add cursor pointer for the calendar input */
+ 
+}
+
+.error {
+  color: #e6343b; /* Set the color for error messages */
+  margin-top: 5px; /* Add margin for better spacing */
+}
+
+.submit-button {
+  background-color:rgb(24, 171, 234);
+  color: rgb(92, 35, 92);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  width: 100px; /* Increase width */
+  height: 40px; /* Decrease height */
+  margin-left: 250px;
+  text-align: center;
+ }
+
+ /* CSS file (e.g., employe.css) */
+
+/* Style for select element */
+.form-field select {
+  /* Define your desired text color */
+  color:black; /* Example color */
+
+  /* Specify font properties */
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+/* Style for option elements */
+.form-field select option {
+  /* Define your desired background color */
+  background-color:gray; /* Example background color */
+
+  /* Specify font properties */
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+
+  /* Adjust padding and margin if needed */
+  padding: 5px;
+  margin: 0;
+}
+
+/* .custom-calendar {
   
-  label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
+} */
+
+/* .custom-calendar-container {
   
-  input,
-  select {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-  }
-  
-  #birthDate {
-    cursor: pointer; /* Add cursor pointer for the calendar input */
-  }
-  
-  .q {
-    margin-top: 20px; /* Add margin between different sections of the form */
-  }
-  
-  .text_field {
-    width: 100%; /* Make the text field take the full width */
-  }
-  
-  .error {
-    color: #e6343b; /* Set the color for error messages */
-    margin-top: 5px; /* Add margin for better spacing */
-  }
-  
-  button {
-    background-color: #f3f6fa; /* Set the background color for the submit button */
-    color: #151313; /* Set the text color for the submit button */
-    padding: 10px 15px; /* Adjust padding for the submit button */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  button:hover {
-    background-color: #0056b3; /* Change the background color on hover */
-  }
+} */
+
+/* .custom-weekend {
+  background-color: #1d0ea0;
+ } */
+

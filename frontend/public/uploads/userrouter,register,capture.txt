@@ -1,0 +1,1104 @@
+const express = require('express');
+const router = express.Router();
+const connection = require('../database');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
+const nodemailer = require('nodemailer');
+const hbs = require('nodemailer-express-handlebars');
+const XLSX = require('xlsx');
+const fs = require('fs');
+const util = require('util');
+const promisifyQuery = util.promisify(connection.query).bind(connection);
+
+
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'geetanjalib@brightcomgroup.com',
+    pass: 'kxah oxvi njke jmuj'
+  }
+});
+
+
+
+//console.log(passowrds)
+
+// Point to the template folder
+const handlebarOptions = {
+  viewEngine: {
+    partialsDir: path.resolve('./views/email.handlebars'),
+    defaultLayout: false,
+  },
+  viewPath: path.resolve('./views/'),
+};
+
+// Use a template file with nodemailer
+transporter.use('compile', hbs(handlebarOptions));
+
+// Sample users array (replace this with your actual array of users)
+const users = [
+  { name: 'Digital Examination', email: 'geetanjalib@brightcomgroup.com' },
+  // { name: 'Akash', email: 'gb11.gpil@gmail.com' },
+  // Add more users as needed
+];
+
+
+// Async function to send emails to all users
+async function sendEmailsToUsers() {
+  for (const user of users) {
+    if (user.email) {
+      await sendEmail(user);
+    }
+  }
+}
+
+
+
+router.post('/register', async (req, res) => {
+  try {
+      const { username, email, password } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const sqlCheck = `SELECT * FROM users WHERE username = ? OR email = ?`;
+      const checkValues = [username, email];
+
+      connection.query(sqlCheck, checkValues, (error, results, fields) => {
+          if (error) {
+              console.error('Error checking for existing user:', error);
+              res.status(500).json({ message: 'Internal Server Error' });
+              return;
+          }
+
+          if (results.length > 0) {
+              // User with the same username or email already exists
+              res.status(400).json({ message: 'Username or email already exists. Please choose another.' });
+              return;
+          }
+
+          const sql = `INSERT INTO users (username, email,  password) VALUES (?, ?, ?)`;
+          const values = [username, email, hashedPassword];
+
+          connection.query(sql, values, (error, results, fields) => {
+              if (error) {
+                  console.error('Error registering user:', error);
+                  res.status(500).json({ message: 'Internal Server Error' });
+              } else {
+                  console.log('User registered successfully');
+                  res.status(201).json({ message: 'User registered successfully' });
+              }
+          });
+      });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+});
+
+// Login endpoint
+router.post('/adminlogin', async (req, res) => {
+  try {
+      const { email, password } = req.body;
+
+      const sql = `SELECT * FROM users WHERE email = ?`;
+      connection.query(sql, [email], async (error, results, fields) => {
+          if (error) {
+              console.error('Error finding user:', error);
+              res.status(500).json({ message: 'Internal Server Error' });
+          } else {
+              const user = results[0];
+
+              if (!user) {
+                  return res.status(401).json({ message: 'Invalid email or password' });
+              }
+
+              const isPasswordValid = await bcrypt.compare(password, user.password);
+
+              if (!isPasswordValid) {
+                  return res.status(401).json({ message: 'Invalid username or password' });
+              }
+
+              const token = jwt.sign({ userId: user.id }, 'secret_key'); // Replace with your own secret key
+              const username = user.username;
+              const id = user.id;
+              res.json({ token, id, username });
+          }
+      });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+});
+
+const jwtSecretKey = process.env.JWT_SECRET_KEY || 'default_secret_key';
+
+router.post('/login', async (req, res) => {
+  const { email, registerNumber } = req.body;
+
+  try {
+    const loginQuery = 'SELECT * FROM applications WHERE email = ? AND registerNumber = ?';
+    const [user] = await promisifyQuery(loginQuery, [email, registerNumber]);
+
+    if (!user) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    const userId = user.registerNumber;
+    const examSubmissionQuery = 'SELECT * FROM exam_results WHERE user_id = ?';
+    const examSubmissionResults = await promisifyQuery(examSubmissionQuery, [userId]);
+
+    if (examSubmissionResults.length > 0) {
+      res.status(401).json({ error: 'User has already submitted the exam' });
+      return;
+    }
+
+    const { firstName, lastName } = user;
+    const token = jwt.sign({ userId: registerNumber }, jwtSecretKey);
+
+    res.status(200).json({
+      message: 'Login successful',
+      firstName,
+      lastName,
+      registerNumber,
+      token,
+      alreadySubmittedExam: false, // Indicate whether the user has already submitted an exam
+    });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.post('/add-notification', (req, res) => {
+  const { userId, notificationText } = req.body;
+
+  const sql = 'INSERT INTO notifications (user_id, notification_text) VALUES (?, ?)';
+  const values = [userId, notificationText];
+
+  connection.query(sql, values, (error, results, fields) => {
+    if (error) {
+      console.error('Error adding notification:', error);
+      res.status(500).json({ success: false, error: 'Error adding notification' });
+    } else {
+      res.json({ success: true, message: 'Notification added successfully' });
+    }
+  });
+});
+
+router.get('/get-notifications', (req, res) => {
+  const sql = 'SELECT * FROM notifications';
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+// In notifications.js or your server-side route file
+router.delete('/delete-notification/:id', (req, res) => {
+  const notificationId = req.params.id;
+
+  const sql = 'DELETE FROM notifications WHERE id = ?';
+
+  connection.query(sql, [notificationId], (error, results, fields) => {
+    if (error) {
+      console.error('Error deleting notification:', error);
+      res.status(500).json({ success: false, error: 'Error deleting notification' });
+    } else {
+      res.json({ success: true, message: 'Notification deleted successfully' });
+    }
+  });
+});
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '../frontend/public/uploads'); // Change the destination path
+  },
+ 
+  filename: (req, file, cb) => {
+    cb(null, `${file.originalname}`);
+  },
+});
+
+const upload = multer({ storage });
+
+router.post('/upload-questionpaper/', upload.single('file'), (req, res) => {
+  const { notificationId } = req.body;
+  const filePath = req.file.path;
+  let newPath = filePath.replace("..\\frontend\\public", "");
+ 
+  
+  console.log("notificationId:", notificationId);
+
+  const sql = 'UPDATE notifications SET qpaperpath = ? WHERE id = ?';
+
+  connection.query(sql, [newPath, notificationId], (error, results, fields) => {
+    if (error) {
+      console.error('Error uploading question paper:', error);
+      res.status(500).json({ success: false, error: 'Error uploading question paper' });
+    } else {
+      res.json({ success: true, message: 'Question Paper Uploaded Successfully' });
+    }
+  });
+});
+
+
+router.get('/getusers', (req, res) => {
+  const sql = 'SELECT id, username, email, resumePath FROM users WHERE role = "user"';
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+
+router.post('/save-exam-result', (req, res) => {
+  const { userId, userName, score, dateAndTime } = req.body;
+  connection.query(
+    'INSERT INTO exam_results (user_id, user_name, score, date_and_time) VALUES (?, ?, ?, ?)',
+    [userId, userName, score, dateAndTime],
+    (error, results, fields) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: 'Error saving data' });
+      }
+
+      return res.json({ success: true, userId, userName, score, dateAndTime });
+    }
+  );
+});
+
+router.get('/getresults', (req, res) => {
+  const sql = 'SELECT user_id, user_name, score, date_and_time FROM exam_results';
+
+  connection.query(sql, (error, results, fields) => {
+    if (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+router.get('/getquestionpaper', (req, res) => {
+  const { userId } = req.query;
+
+  // Assuming you have a database connection object named `db`
+  connection.query('SELECT notificationId FROM applications WHERE registerNumber = ?', [userId], (error, results) => {
+    if (error) {
+      console.error('Error fetching notificationId:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    if (results.length === 0) {
+      // User not found in applications table
+      console.error('User not found for userId:', userId);
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const notificationId = results[0].notificationId;
+
+    // Now fetch qpaperpath using notificationId from the notification table
+    connection.query('SELECT qpaperpath FROM notifications WHERE id = ?', [notificationId], (err, qpaperResults) => {
+      if (err) {
+        console.error('Error fetching qpaperpath:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      if (qpaperResults.length === 0) {
+        // Notification not found in the notification table
+        console.error('Notification not found for notificationId:', notificationId);
+        res.status(404).json({ error: 'Notification not found' });
+        return;
+      }
+
+      const qpaperpath = qpaperResults[0].qpaperpath;
+      
+      console.log('notificationId:', notificationId);
+      console.log('qpaperpath:', qpaperpath);
+
+      // Dynamically generate the file name based on qpaperpath
+      const fileName = `..\\frontend\\public\\${qpaperpath}`;
+
+      // Read the file asynchronously
+      fs.readFile(fileName, (readErr, fileContent) => {
+        if (readErr) {
+          console.error('Error reading file:', readErr);
+          res.status(500).json({ error: 'Internal Server Error' });
+          return;
+        }
+
+        const workbook = XLSX.read(fileContent, { type: 'buffer' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const arrayData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        const convertToQuestionsFormat = (arrayData) => {
+          const categories = {};
+        
+          for (let i = 1; i < arrayData.length; i++) {
+            const [category, id, question, options, answer] = arrayData[i];
+        
+            if (!categories[category]) {
+              categories[category] = {
+                category,
+                questions: [],
+              };
+            }
+        
+            // Check if options is defined before splitting
+            const optionsArray = options ? options.split(', ').map(option => option.trim()) : [];
+        
+            categories[category].questions.push({
+              id,
+              question,
+              options: optionsArray,
+              answer,
+            });
+          }
+        
+          return Object.values(categories);
+        };
+        
+        
+        const questions = convertToQuestionsFormat(arrayData);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(questions));
+      });
+    });
+  });
+});
+
+router.post('/submit-form', upload.fields([
+  { name: 'uploadresume', maxCount: 1 },
+  { name: 'uploadphoto', maxCount: 1 },
+]), async (req, res) => {
+  const {
+    first_name,
+    last_name,
+    gender,
+    birth_date,
+    phone_number,
+    email,
+    exam_link,
+    city_district,
+    state,
+    zipcode,
+    notificationId,
+    notificationText
+  } = req.body;
+
+  console.log(req.body)
+
+  const { uploadresume, uploadphoto } = req.files;
+
+  // ... rest of your validation and insertion logic remains the same
+
+  const filePathResume = uploadresume ? uploadresume[0].path : '';
+  const filePathPhoto = uploadphoto ? uploadphoto[0].path : '';
+
+  // Check if the email already exists in the database
+  const checkEmailQuery = `SELECT * FROM applications WHERE email = ? and notificationid=?`;
+  connection.query(checkEmailQuery, [email, notificationId], (checkError, checkResults) => {
+    if (checkError) {
+      console.error('Error checking email in MySQL:', checkError);
+      res.status(500).send('Error checking email in the database');
+      return;
+    }
+  
+    if (checkResults.length > 0) {
+      // If the email exists, handle accordingly (e.g., send a message indicating duplication)
+      console.log('Email already exists in the database')
+      res.status(400).send('Email already exists in the database');
+      return;
+    }
+
+    // If the email doesn't exist, proceed with the insertion
+    const formattedBirthDate = new Date(birth_date).toISOString().split('T')[0];
+    // const filePath = req.file ? req.file.path : null;
+    
+    const filePath = req.file ? req.file.path : ''; // Assign an empty string if filePath is null
+    const getLatestRegisterNumberQuery = `
+      SELECT MAX(registerNumber) AS maxRegisterNumber FROM applications
+    `;
+    // const password = generator.generate({
+    //   length: 10,
+    //   uppercase: true,
+    //   numbers: true,
+    // });
+
+    connection.query(getLatestRegisterNumberQuery, async (getNumberError, numberResults) => {
+      if (getNumberError) {
+        console.error('Error retrieving latest register number:', getNumberError);
+        res.status(500).send('Error retrieving latest register number');
+        return;
+      }
+
+      let latestRegisterNumber = numberResults[0].maxRegisterNumber || 499999; // If there are no entries, start from 499999
+      latestRegisterNumber++; // Increment the latest register number
+      const registerNumber = Math.max(500000, latestRegisterNumber); // Ensure the minimum of 6 digits starting from 500000
+
+
+      const insertQuery = `
+      INSERT INTO applications 
+      (registerNumber, firstName, lastName, gender, birthDate, phoneNumber, email, exam_link, cityDistrict, state, zipcode, resumePath,photopath,notificationId) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)
+    `;
+    connection.query(
+      insertQuery,
+      [
+        registerNumber,
+        first_name,
+        last_name,
+        gender,
+        formattedBirthDate,
+        phone_number,
+        email,
+        exam_link,
+        city_district,
+        state,
+        zipcode,
+        filePathResume,
+        filePathPhoto,
+        notificationId,
+      
+
+      ],
+      async (insertError, results) => {
+        if (insertError) {
+          console.error('Error inserting data into MySQL:', insertError);
+          res.status(500).send('Error inserting data into the database');
+          return;
+        }
+
+        const exam_link = "https://3413-183-82-100-222.ngrok-free.app/login"
+
+        const mailOptions = {
+          from: '"Brightcom Group" <geetanjalib@brightcomgroup.com>',
+          template: 'email', // the name of the main template file, without extension
+          to: email,
+          subject: `Registration Successful`,
+          context: {
+            name:`${first_name} ${last_name}`,
+            company: 'Brightcom Group',
+            email: email,
+            registernumber: registerNumber,
+            exam_link:exam_link,
+            notificationText: notificationText
+          },
+        };
+      
+        try {
+          await transporter.sendMail(mailOptions);
+          console.log(`Email sent successfully to ${email}`);
+        } catch (error) {
+          console.log(`Nodemailer error sending email to ${email}`, error);
+        }
+
+        console.log('Form data inserted into MySQL');
+        res.status(200).send('Form data received and inserted successfully into the database');
+    }
+    );
+  });
+});
+});
+
+
+router.post('/uploadCameraImage', upload.single('image'), (req, res) => {
+  console.log('Received file:', req.file);
+  const { registerNumber } = req.body; 
+  const imagePath = req.file.path; 
+
+  const newImagePath = path.join("..\\frontend\\public\\Images\\" + registerNumber + '.png');
+  console.log(newImagePath)
+
+  // Read the uploaded file
+  fs.readFile(imagePath, (err, data) => {
+    if (err) {
+      console.error('Error reading file:', err);
+      res.status(500).json({ success: false, error: 'Failed to read image' });
+      return;
+    }
+
+    // Save the image with the unique filename and PNG format
+    fs.writeFile(newImagePath, data, (err) => {
+      if (err) {
+        console.error('Error saving file:', err);
+        res.status(500).json({ success: false, error: 'Failed to save image' });
+        return;
+      }
+
+      // Assuming 'newImagePath' contains the relative path to the image
+      // Insert the image path into the database with the corresponding registerNumber
+      connection.query('INSERT INTO images (registernumber, captureimage) VALUES (?, ?)', [registerNumber, newImagePath], (err, results) => {
+        if (err) {
+          console.error('Error inserting image path:', err);
+          res.status(500).json({ success: false, error: 'Failed to save image to database' });
+        } else {
+          console.log('Image path inserted successfully for registerNumber:', registerNumber);
+          res.status(200).json({ success: true, message: 'Image uploaded successfully' });
+        }
+      });
+    });
+  });
+});
+
+// Route to fetch notification text for a user
+router.get('/notification/:registerNumber', (req, res) => {
+  const registerNumber = req.params.registerNumber;
+
+  // Query to fetch notification text for the given user's register number
+  const query = `
+    SELECT a.firstName, a.lastName, n.notification_text, uploadlogo
+    FROM applications AS a
+    JOIN notifications AS n ON a.notificationId = n.id
+    WHERE a.registerNumber = ?
+  `;
+
+  // Execute the query
+  connection.query(query, [registerNumber], (error, results) => {
+    if (error) {
+      console.error('Error fetching notification text:', error);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).send('Notification not found for the provided register number');
+      return;
+    }
+
+    // Send the notification text in the response
+    res.json(results[0]);
+  });
+});
+
+
+// Backend API route to fetch user details
+router.get('/user-details/:registerNumber', async (req, res) => {
+  const registerNumber = req.params.registerNumber;
+
+  // Query to fetch user details based on the register number
+  const getUserDetailsQuery = `SELECT gender, birthDate FROM applications WHERE registerNumber = ?`;
+
+  connection.query(getUserDetailsQuery, [registerNumber], (error, results) => {
+    if (error) {
+      console.error('Error fetching user details:', error);
+      res.status(500).send('Error fetching user details');
+      return;
+    }
+
+    if (results.length === 0) {
+      res.status(404).send('User not found');
+      return;
+    }
+
+    const userDetails = {
+      gender: results[0].gender,
+      birthDate: results[0].birthDate
+    };
+
+    res.status(200).json(userDetails);
+  });
+});
+
+// For uploading logo with notificationId
+router.post('/upload-logo/:notificationId', upload.single('file'), (req, res) => {
+  const { notificationId } = req.params;
+  const filePath = req.file.path;
+  const newPath = filePath.replace("..\\frontend\\public", ""); // Adjust path as needed
+
+  console.log("notificationId:", notificationId);
+
+  const sql = 'UPDATE notifications SET uploadlogo = ? WHERE id = ?';
+
+  connection.query(sql, [newPath, notificationId], (error, results, fields) => {
+    if (error) {
+      console.error('Error uploading logo:', error);
+      res.status(500).json({ success: false, error: 'Error uploading logo' });
+    } else {
+      res.json({ success: true, message: 'Logo Uploaded Successfully' });
+    }
+  });
+});
+
+
+module.exports = router;
+
+these is my userrouter.js file
+===============================================
+import React, { useRef, useState } from 'react';
+import Webcam from 'react-webcam';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const CaptureImage = ({ registerNumber }) => {
+  const webcamRef = useRef(null);
+  const [image, setImage] = useState(null);
+  const navigate = useNavigate(); 
+
+  const captureAndSaveImage = async () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImage(imageSrc);
+
+    if (imageSrc) {
+      const blob = dataURItoBlob(imageSrc);
+      try {
+        const formData = new FormData();
+        formData.append('image', blob);
+        // formData.append('registerNumber', registerNumber);
+
+        // Append the registerNumber retrieved from local storage
+      formData.append('registerNumber', localStorage.getItem('userid'));
+
+
+      navigate('/user');
+        await axios.post('api/users/uploadCameraImage', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        console.log('Image capture successful');
+        
+      } catch (error) {
+        console.log('Error uploading image:', error);
+        // Handle error
+      }
+    }
+  };
+
+  const dataURItoBlob = (dataURI) => {
+    const byteString = atob(dataURI.split(',')[1]);
+    const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+  };
+
+ 
+  
+  
+  
+
+  return (
+    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <h2>Digital Examination System</h2>
+      <div style={{ borderBottom: '3px solid blue', width: '100%', maxWidth: '1800px' }}></div>
+      <h3>Face Recognition</h3>
+      {/* <h3 style={{ borderBottom: '1px solid blue', width: '80%', maxWidth: '600px', paddingBottom: '10px' }}>Face Recognition</h3> */}
+      <div style={{ textAlign: 'left', borderBottom: '3px solid blue', width: '100%', maxWidth: '1800px' }}>
+        <p style={{color:"red",fontSize:"30px",fontWeight:"bold"}}>Instructions:</p>
+        
+        <p>&#8226; Face recognition features will be utilized for identity verification during the exam.</p>
+        <p>&#8226; Ensure your webcam is functioning properly before attending the exam.</p>
+        <p>&#8226; To start the examination, ensure proper lighting and camera positioning.</p>
+      </div>
+      {/* <hr style={{ width: '80%', margin: '20px auto' }} /> */}
+      <div style={{ display: 'flex', justifyContent:'center',  width: '80%', maxWidth: '800px',padding:'12px' }}>
+        <div style={{  flex: '1' }}>
+          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/png" width={480} height={360} />
+          <button
+  onClick={captureAndSaveImage}
+  style={{
+    padding: '10px 20px',
+    backgroundColor: 'blue',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+    marginTop: '10px',
+  }}
+>
+  Capture Image
+</button>
+
+          {/* <div style={{ borderBottom: '3px solid blue', width: '100%', maxWidth: '1800px' }}></div> */}
+          
+        </div>
+        <div style={{  flex: '1',marginLeft:'20px' }}>
+          {image && <img src={image} alt="Captured" style={{ width: '480px', height: '360px', marginBottom: '10px' }} />}
+          
+          {/* {image && <button onClick={saveImage}>Save Image</button>} */}
+        </div>
+      </div>
+      <div style={{ textAlign: 'left', borderTop: '3px solid blue',  width: '100%', maxWidth: '1800px' }}>
+      <p style={{ textAlign: 'left', fontSize:'20px',color:'blue' }}>
+            You must allow your browser to access your web-camera. Please do this following setting in Google Chrome or Microsoft Edge to ensure that the permissions are properly enabled.
+          </p>
+      </div>
+      
+    </div>
+  );
+};
+
+export default CaptureImage;
+
+these is my captureimage
+================================================
+import React, { useState, useRef, useEffect } from "react";
+import { useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import "./employe.css";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css'; // Import the styles
+
+const EmploymentApplicationForm = () => {
+  const { notificationId, notificationText } = useParams();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [gender, setGender] = useState("");
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [cityDistrict, setCityDistrict] = useState("");
+  const [state, setState] = useState("");
+  const [zipcode, setZipcode] = useState("");
+  const [resume, setResume] = useState(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const calendarRef = useRef();
+  const [errors, setErrors] = useState({});
+  const [submissionMessage, setSubmissionMessage] = useState("");
+  const [uploadPhoto, setUploadPhoto] = useState(null);
+ 
+  // const notify = () => toast("Submitted Successfully!");
+
+
+
+const handleUploadPhotoChange = (e) => {
+  const selectedFile = e.target.files[0];
+  setUploadPhoto(selectedFile);
+};
+
+const handleCalendarClick = () => {
+  setIsCalendarOpen(!isCalendarOpen);
+};
+
+  const handleDocumentClick = (e) => {
+    if (calendarRef.current && !calendarRef.current.contains(e.target)) {
+      setIsCalendarOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("click", handleDocumentClick);
+
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, []);
+
+  const handlePhoneNumberChange = (e) => {
+    const inputValue = e.target.value.replace(/\D/g, "");
+    if (inputValue.length <= 10) {
+      setPhoneNumber(inputValue);
+    }
+  };
+
+  const handleZipcodeChange = (e) => {
+    console.log('Handling zipcode change...');
+    const inputValue = e.target.value.replace(/\D/g, '');
+    console.log('Cleaned value:', inputValue);
+    if (inputValue.length <= 6) {
+      console.log('Updating state with zipcode:', inputValue);
+      setZipcode(inputValue);
+    }
+  };
+
+  // const handleEmailChange = (e) => {
+  //   const inputValue = e.target.value;
+  //   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue);
+
+  //   setEmail(inputValue);
+
+  //   if (!isValidEmail) {
+  //     setErrors({ ...errors, email: "Please enter a valid email address" });
+  //   } else {
+  //     setErrors({ ...errors, email: "" });
+  //   }
+  // };
+
+  const handleEmailChange = (e) => {
+    const inputValue = e.target.value;
+    setEmail(inputValue);
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputValue);
+    setErrors({ ...errors, email: isValidEmail ? '' : "Please enter a valid email address" });
+  };
+
+  const handleResumeChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setResume(selectedFile);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formattedBirthDate = birthDate.toISOString().split("T")[0];
+
+    const isValid = validateForm();
+    if (!isValid) {
+      console.error("Invalid form submission");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("first_name", firstName);
+    formData.append("last_name", lastName);
+    formData.append("gender", gender);
+    formData.append("birth_date", formattedBirthDate);
+    formData.append("phone_number", phoneNumber);
+    formData.append("email", email);
+    formData.append("city_district", cityDistrict);
+    formData.append("state", state);
+    formData.append("zipcode", zipcode);
+    formData.append("uploadresume", resume);
+    formData.append("uploadphoto", uploadPhoto);
+    formData.append("notificationId", notificationId);
+    formData.append("notificationText", notificationText);
+
+    try {
+      const response = await fetch(
+        "/api/users/submit-form",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        alert(errorMessage);
+        return;
+      }
+
+      // If response is successful, reset the form or display success message
+      // For example:
+      // setSubmissionMessage("Form submitted successfully!");
+      // resetForm();
+      alert("Form submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmissionMessage("Error submitting form. Please try again.");
+    }
+  };
+      
+
+  const validateForm = () => {
+    if (!email || !isValidEmail(email)) {
+      setErrors({ ...errors, email: isValidEmail ? '': "Please enter a valid email address" });
+      return isValidEmail;
+    }
+    return true;
+  };
+
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const resetForm = () => {
+    setFirstName("");
+    setLastName("");
+    setGender("");
+    setBirthDate(new Date());
+    setPhoneNumber("");
+    setEmail("");
+    setCityDistrict("");
+    setState("");
+    setZipcode("");
+    setResume(null);
+    setErrors({});
+  };
+
+
+  return (
+    <div className="bg">
+      <div className="centered-text">
+        <img src="https://img.freepik.com/free-vector/young-girl-using-tablet-education_1308-77988.jpg?size=626&ext=jpg&ga=GA1.1.1227489891.1707733392&semt=ais" alt="" className="left-image" />
+        <h3>Registration For {notificationText}:</h3>
+      </div>
+      <form onSubmit={handleSubmit} className="employment-form">
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="firstName">First Name ***</label>
+            <input
+              type="text"
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="lastName">Last Name ***</label>
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="gender">Gender ***</label>
+            <select
+              id="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              required
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="form-field">
+      <label htmlFor="birthDate">Date of Birth ***</label>
+      <div>
+        <input
+          type="text"
+          id="birthDate"
+          value={birthDate.toDateString()}
+          onClick={handleCalendarClick} // Open calendar on input click
+          readOnly
+          required
+        />
+        {isCalendarOpen && (
+          <DatePicker
+            selected={birthDate}
+            onChange={(date) => {
+              setBirthDate(date);
+              setIsCalendarOpen(false); // Close the calendar after selecting a date
+            }}
+            className="custom-calendar"
+            calendarClassName="custom-calendar-container"
+            dayClassName={(date) => (date.getDay() === 0 || date.getDay() === 6 ? 'custom-weekend' : '')}
+          />
+        )}
+      </div>
+       </div>
+    </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="phoneNumber">Phone Number ***</label>
+            <input
+              type="text"
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={handlePhoneNumberChange}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="email">Email ***</label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={handleEmailChange}
+              required
+            />
+            {errors.email && <p className="error">{errors.email}</p>}
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="cityDistrict">City/District ***</label>
+            <input
+              type="text"
+              id="cityDistrict"
+              value={cityDistrict}
+              onChange={(e) => setCityDistrict(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="state">State ***</label>
+            <input
+              type="text"
+              id="state"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="zipcode">Zipcode ***</label>
+            <input
+              type="text"
+              id="zipcode"
+              value={zipcode}
+              onChange={handleZipcodeChange}
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="resume">Upload Resume ***</label>
+            <input
+              type="file"
+              id="resume"
+              accept=".pdf, .doc, .docx"
+              onChange={handleResumeChange}
+              required
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-field">
+            <label htmlFor="uploadPhoto">Upload Photo ***</label>
+            <input
+              type="file"
+              id="uploadPhoto"
+              accept="image/*"
+              onChange={handleUploadPhotoChange}
+            />
+          </div>
+          <button type="submit" className="submit-button">Submit</button>
+
+          <ToastContainer
+            position="bottom-center"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            className="green-theme" // Use a class name to target the container
+          />
+        </div>
+      </form>
+
+      {/* Display submission message */}
+      {submissionMessage && <p>{submissionMessage}</p>}
+    </div>
+  );
+};
+
+export default EmploymentApplicationForm;
+
+these is my registerapplications.js file

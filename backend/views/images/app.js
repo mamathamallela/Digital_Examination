@@ -1,7 +1,7 @@
 const currentDate = new Date();
 
 // Make a GET request to your backend endpoint to fetch the exam link status
-fetch('http://localhost:8000/api/users/exam-link')
+fetch('api/users/exam-link')
   .then(response => response.json())
   .then(data => {
     const { link } = data;
