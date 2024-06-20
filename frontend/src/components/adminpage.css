@@ -1,0 +1,50 @@
+.adminpage-container {
+  display: flex;
+}
+
+.asidebar {
+  width: 15%;
+  background-color: #e5ebe5;
+  padding: 20px;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.avatar {
+  width: 100px; /* Adjust the size as needed */
+  border-radius: 50%;
+}
+
+.username {
+  margin-top: 10px;
+}
+
+.sidebar-button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.results-table {
+  margin-bottom: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}

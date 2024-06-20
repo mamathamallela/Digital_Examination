@@ -1,0 +1,47 @@
+.userpage-container {
+  display: flex;
+}
+
+.sidebar {
+  width: 15%;
+  background-color: #f4f4f4;
+  padding: 20px;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.avatar {
+  width: 100px; /* Adjust the size as needed */
+  border-radius: 50%;
+}
+
+.username {
+  margin-top: 10px;
+}
+
+.sidebar-button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.score-popup {
+  position: fixed;
+  top: 50%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+  padding: 40px;
+  background-color: #00bfff;
+  color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999; /* Add this line */
+}
+
+
+

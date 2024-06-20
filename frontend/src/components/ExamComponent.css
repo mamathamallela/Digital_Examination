@@ -1,0 +1,13 @@
+.custom-options li {
+    list-style-type: none;
+    cursor: pointer;
+    padding: 5px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .custom-options li.selected {
+    background-color: #ffcccb; /* Light red background for selected options */
+  }
+  
